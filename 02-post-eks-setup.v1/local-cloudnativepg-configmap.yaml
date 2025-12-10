@@ -1,0 +1,14 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: ${DOMAIN_PREFIX}${APP_NAME}-pg-init
+  namespace: ${NAME_SPACE}
+data:
+  init.sql: |
+    CREATE USER readonly_user WITH ENCRYPTED PASSWORD 'readonly_password';
+    GRANT CONNECT ON DATABASE ${DOMAIN_PREFIX}${APP_NAME}_db TO readonly_user;
+    GRANT USAGE ON SCHEMA public TO readonly_user;
+    GRANT SELECT ON ALL TABLES IN SCHEMA public TO readonly_user;
+    ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT SELECT ON TABLES TO readonly_user;
+    GRANT ALL PRIVILEGES ON DATABASE ${DOMAIN_PREFIX}${APP_NAME}_db TO ${DOMAIN_PREFIX}${APP_NAME}_user;
+    ALTER DATABASE${DOMAIN_PREFIX}${APP_NAME}_db OWNER TO ${DOMAIN_PREFIX}${APP_NAME}_user;

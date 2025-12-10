@@ -1,0 +1,74 @@
+image:
+  debug: true
+
+diagnosticMode:
+  enabled: false
+
+controller:
+  metrics:
+    enabled: false
+  telemetry:
+    enabled: false
+    opentelemetry:
+      enabled: false
+      config: null
+  service:
+    type: LoadBalancer
+    annotations:
+      service.beta.kubernetes.io/do-loadbalancer-protocol: http
+      # kubernetes.digitalocean.com/do-loadbalancer-certificate-id: ${CERTIFICATE_ID}
+      # service.beta.kubernetes.io/do-loadbalancer-redirect-http-to-https: "true"
+      service.beta.kubernetes.io/do-loadbalancer-enable-proxy-protocol: "true"
+      # service.beta.kubernetes.io/do-loadbalancer-hostname: "${SHARED_ENV}-events-api-rust.${DOMAIN_NAME}"
+  # config:
+  #   use-proxy-protocol: "true"
+  #   real-ip-header: "proxy_protocol"
+  #   proxy-real-ip-cidr: "0.0.0.0/0"
+  #   use-forwarded-headers: "true"
+  #   enable-real-ip: "true"
+  #   ssl-redirect: "true"
+  #   hsts: "true"
+  #   hsts-include-subdomains: "true"
+  #   hsts-max-age: "31536000"
+  extraVolumeMounts:
+  - name: tmp-nginx
+    mountPath: /tmp/nginx
+  extraVolumes:
+  - name: tmp-nginx
+    emptyDir: {}
+
+config:
+  access-log-path: "/tmp/nginx/access.log"
+  error-log-path: "/tmp/nginx/error.log"
+  compute-full-forwarded-for: "true"
+  real-ip-header: "proxy_protocol"
+  use-forwarded-headers: "true"
+  enable-real-ip: "true"
+  use-geoip: "false"
+  use-geoip2: "false"
+  log-format-escape-json: 'true'
+  log-format-upstream: >-
+    {"timestamp":"$time_iso8601", "requestID":"$req_id", "proxyUpstreamName":"$proxy_upstream_name", "proxyAlternativeUpstreamName":"$proxy_alternative_upstream_name", "upstreamStatus":"$upstream_status", "upstreamAddr": "$upstream_addr", "upstreamUri": "$uri", "httpRequest":{ "requestMethod":"$request_method", "requestScheme": "$scheme", "requestHost": "$host", "requestPath": "$request_uri", "status":$status, "requestSize":"$request_length", "responseSize":"$upstream_response_length", "remoteIp":"$remote_addr", "referer": "$http_referer", "http_origin": "$http_origin", "duration":"$upstream_response_time", "protocol":"$server_protocol", "http_x_forwarded_for":"$http_x_forwarded_for", "x-application": "$app_id" }}
+
+  server-snippet: |-
+    location /status {
+        return 200 "OK";
+    }
+  http-snippet: |-
+    set_real_ip_from    0.0.0.0/0;
+    # real_ip_header      proxy_protocol;
+    # real_ip_recursive   on;
+
+    map $http_host $app_id {
+      default                        Fwpa1AmW4ppn7TUa;
+      exchange.agrregator.com        Fwpa1AmW4ppn7TUa;
+      mobile.agrregator.com          Fwpa1AmW4ppn7TUa;
+      mobile.bankoweb.com            Fwpa1AmW4ppn7TUa;
+      mobile.auexch.co               Fwpa1AmW4ppn7TUa;
+      "localhost:8100"               Fwpa1AmW4ppn7TUa;
+    }
+    proxy_set_header x-application $app_id;
+    map $http_upgrade $connection_upgrade {
+      default upgrade;
+      '' close;
+    }

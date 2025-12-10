@@ -1,0 +1,5 @@
+#do_token = "your_digitalocean_api_token"
+domain_name = "openmindsolutions.sg"
+app_name = "sb"
+env = "dev"
+domain_prefix = "dev-"

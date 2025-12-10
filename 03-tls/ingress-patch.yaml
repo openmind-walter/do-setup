@@ -1,0 +1,29 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: dev-openmindsolutions-sg-master
+  namespace: dev
+  annotations:
+    nginx.ingress.kubernetes.io/use-proxy-protocol: "true"
+    nginx.ingress.kubernetes.io/proxy-real-ip-cidr: "0.0.0.0/0"
+    nginx.ingress.kubernetes.io/configuration-snippet: |
+      real_ip_header proxy_protocol;
+      real_ip_recursive on;
+    cert-manager.io/cluster-issuer: letsencrypt-staging
+spec:
+  ingressClassName: nginx-dev
+  tls:
+  - hosts:
+    - dev-events-api-rust.openmindsolutions.sg
+    secretName: dev-events-tls
+  rules:
+  - host: dev-events-api-rust.openmindsolutions.sg
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: dev-events-api-rust
+            port:
+              number: 8080

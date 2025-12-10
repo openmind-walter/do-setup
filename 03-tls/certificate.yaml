@@ -1,0 +1,12 @@
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: dev-events-tls
+  namespace: dev
+spec:
+  secretName: dev-events-tls
+  issuerRef:
+    name: letsencrypt-staging
+    kind: ClusterIssuer
+  dnsNames:
+  - dev-events-api-rust.openmindsolutions.sg

@@ -1,0 +1,11 @@
+spec:
+  type: LoadBalancer
+metadata:
+  annotations:
+    service.beta.kubernetes.io/do-loadbalancer-protocol: https
+    service.beta.kubernetes.io/do-loadbalancer-certificate-id: 469d83c8-7c99-4346-9ad0-e51f34c1f89f
+    service.beta.kubernetes.io/do-loadbalancer-redirect-http-to-https: "true"
+    service.beta.kubernetes.io/do-loadbalancer-tls-passthrough: "false"
+    service.beta.kubernetes.io/do-loadbalancer-enable-proxy-protocol: "true"
+    nginx.ingress.kubernetes.io/use-proxy-protocol: "true" 
+

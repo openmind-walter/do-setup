@@ -1,0 +1,41 @@
+master:
+  persistence:
+    enabled: false
+  nodeSelector:
+    role: db
+
+metrics:
+  enabled: true
+  exporter:
+    replica:
+      nodeSelector:
+        role: db
+      replicaCount: 0
+    master:
+      nodeSelector:
+        role: db
+      replicaCount: 0
+
+serviceMonitor:
+  enabled: true
+  namespace: monitoring
+
+podMonitor:
+  enabled: true
+
+service:
+  type: ClusterIP
+
+auth:
+  enabled: false
+  sentinel: false
+
+replica:
+  replicaCount: 0
+
+tls:
+  enabled: false
+
+affinity:
+  podAntiAffinity:
+    enabled: false # <-- THIS FORCES ALL PODS TO IGNORE HA RULES

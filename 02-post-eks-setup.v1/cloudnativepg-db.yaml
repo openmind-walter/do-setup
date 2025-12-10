@@ -1,0 +1,41 @@
+apiVersion: postgresql.cnpg.io/v1
+kind: Cluster
+metadata:
+  name: ${NAME_SPACE}-${APP_NAME}-pg
+  namespace: ${NAME_SPACE}
+spec:
+  instances: 1
+  nodeSelector:
+    role: db-pool
+  imageName: ghcr.io/cloudnative-pg/postgresql:16
+  storage:
+    size: 1Gi
+  bootstrap:
+    initdb:
+      secret:
+        name: ${DOMAIN_PREFIX}${APP_NAME}-db-secret
+      postInitSQL:
+        - CREATE DATABASE ${DOMAIN_PREFIX}${APP_NAME}_db;
+        - CREATE USER ${DOMAIN_PREFIX}${APP_NAME}_user WITH PASSWORD 'Password123!!';
+        - ALTER DATABASE ${DOMAIN_PREFIX}${APP_NAME}_db OWNER TO ${DOMAIN_PREFIX}${APP_NAME}_user;
+        - GRANT CONNECT ON DATABASE ${DOMAIN_PREFIX}${APP_NAME}_db TO ${DOMAIN_PREFIX}${APP_NAME}_user;
+        - ALTER ROLE ${DOMAIN_PREFIX}${APP_NAME}_user SET search_path TO ${DOMAIN_PREFIX}${APP_NAME}_db, public;
+        - CREATE USER read_only WITH PASSWORD 'read_only';
+        - GRANT CONNECT ON DATABASE ${DOMAIN_PREFIX}${APP_NAME}_db TO read_only;
+        - GRANT USAGE ON SCHEMA public TO read_only;
+        - GRANT SELECT ON ALL TABLES IN SCHEMA public TO read_only;
+        - ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT SELECT ON TABLES TO read_only;
+  enableSuperuserAccess: true
+  monitoring:
+    enablePodMonitor: false
+  primaryUpdateStrategy: unsupervised
+  postgresql:
+    parameters:
+      search_path: "${DOMAIN_PREFIX}${APP_NAME}_db, public"
+  resources:
+    requests:
+      cpu: "150m"
+      memory: "128Mi"
+    limits:
+      cpu: "150m"
+      memory: "128Mi"
