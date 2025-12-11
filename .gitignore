@@ -1,3 +1,8 @@
 .terraform*
 terraform.tfstate*
 symbolic_link.*.tf*
+
+# Environment files with secrets
+.env
+.env.*
+*.env

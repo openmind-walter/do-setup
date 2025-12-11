@@ -25,3 +25,15 @@ variable "region" {
   default = "syd1"
 }
 
+variable "spaces_access_id" {
+  description = "DigitalOcean Spaces Access Key ID"
+  type        = string
+  sensitive   = true
+}
+
+variable "spaces_secret_key" {
+  description = "DigitalOcean Spaces Secret Access Key"
+  type        = string
+  sensitive   = true
+}
+
