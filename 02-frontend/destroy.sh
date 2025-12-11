@@ -1,5 +1,5 @@
 if [[ -z "$1" ]]; then
-  echo "./setup.sh <cluster_name>"
+  echo "./destroy.sh <cluster_name>"
   exit 0
 fi
 CLUSTER_NAME=$1
@@ -13,7 +13,8 @@ terraform init
 # terraform workspace select ${CLUSTER_NAME}
 # if [ $? -eq 0 ]; then
 #   echo "Workspace ${CLUSTER_NAME}"
-    terraform apply -var-file=symbolic_link.${CLUSTER_NAME}.tfvars -var-file=symbolic_link.${CLUSTER_NAME}.frontend.tfvars 
+  terraform destroy -var-file=symbolic_link.${CLUSTER_NAME}.tfvars -var-file=symbolic_link.${CLUSTER_NAME}.frontend.tfvars 
+
 # else
 #   echo "workspace ${CLUSTER_NAME} does not exists"
 #   echo "to create workspace use: terraform workspace new ${CLUSTER_NAME}"

@@ -1,0 +1,17 @@
+name: sb
+region: syd1
+
+components:
+  - name: mobile_openmindsolutions_sg
+    type: static_site
+    source_dir: /
+    github:
+      repo: openmind-walter/dummy-fe
+      branch: dev
+      deploy_on_push: true
+    routes:
+      - path: /
+    domains:
+      - domain: dev-mobile.openmindsolutions.sg
+        type: PRIMARY
+
