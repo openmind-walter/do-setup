@@ -15,15 +15,11 @@ site_configs = {
   mobile_openmindsolutions_sg = {
     domain_name   = "dev-mobile.openmindsolutions.sg"
     dns_zone      = "openmindsolutions.sg"
-    bucket_name = "dev-sb"
-    source_dir    = "dev-mobile_openmindsolutions_sg/dist"
   },
   
   # SITE 2: Adding a new site just means adding a new block here
   # mobile_demokit_com = {
   #   domain_name   = "dev-mobile.sb-demokit.com"
-  #   dns_zone      = "sb-demokit.com"
-  #   bucket_name = "dev-sb"
-  #   source_dir    = "/dist/dev-mobile_sb-demokit_com"
+  #   dns_zone      = "openmindsolutions.sg"  # Fixed: should match the domain's root zone
   # }
 }

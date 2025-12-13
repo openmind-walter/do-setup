@@ -1,0 +1,4 @@
+.env
+symbolic_link.*
+.terraform*
+terraform.tfstate*

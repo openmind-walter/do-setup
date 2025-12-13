@@ -12,9 +12,9 @@ variable "site_configs" {
     # The root domain to use for DNS management (e.g., mysite.com)
     dns_zone    = string
     # The unique name for the Spaces bucket (must be globally unique)
-    bucket_name = string 
+    # bucket_name = string 
     # The path *inside* the Space where the site files are pushed (e.g., dist)
-    source_dir  = string
+    # source_dir  = string
   }))
 }
 
