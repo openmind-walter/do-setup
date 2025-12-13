@@ -41,7 +41,7 @@ resource "null_resource" "create_spaces_folders" {
       
       # Create a temporary index.html file with site-specific content
       TEMP_INDEX=$(mktemp)
-      echo "Setup Done." > "$TEMP_INDEX"
+      echo "Spaces path: s3://$BUCKET_NAME/$SPACES_PATH" > "$TEMP_INDEX"
       
       # Upload index.html to Spaces using AWS CLI (S3-compatible)
       # Configure AWS CLI for DigitalOcean Spaces

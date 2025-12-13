@@ -31,7 +31,13 @@ site_configs = {
     local_build_dir = "../builds/dev-mobile"
   },
   
-  # SITE 2: Admin site
+  desktop_sb_demokit_com = {
+    domain_name   = "dev-desktop.sb-demokit.com"
+    dns_zone      = "sb-demokit.com"
+    path_prefix   = "dev-desktop"
+    local_build_dir = "../builds/dev-desktop"
+  },
+
   admin_sb_demokit_com = {
     domain_name   = "dev-admin.sb-demokit.com"
     dns_zone      = "sb-demokit.com"  # Fixed: should match the domain's root zone
