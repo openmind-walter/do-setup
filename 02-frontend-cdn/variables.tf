@@ -66,4 +66,16 @@ variable "enable_rulesets" {
   default     = true
 }
 
+variable "api_domain" {
+  description = "API domain name (e.g., 'demo-api.sb-demokit.com') - common for all sites"
+  type        = string
+  default     = ""
+}
+
+variable "api_backend_ip" {
+  description = "Backend IP address for the API domain (if not using Cloudflare proxy)"
+  type        = string
+  default     = ""
+}
+
 # Note: spaces_access_id and spaces_secret_key are inherited from parent module (00-Env)

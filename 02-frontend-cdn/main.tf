@@ -12,6 +12,25 @@ resource "cloudflare_record" "site_dns" {
   proxied = true
 }
 
+# Extract zone from API domain (e.g., demo-api.sb-demokit.com -> sb-demokit.com)
+locals {
+  api_zone = var.api_domain != "" ? join(".", slice(split(".", var.api_domain), 1, length(split(".", var.api_domain)))) : ""
+}
+
+# API domain DNS record (if configured)
+resource "cloudflare_record" "api_dns" {
+  count = var.api_domain != "" && local.api_zone != "" ? 1 : 0
+
+  zone_id = try(
+    var.create_zones ? cloudflare_zone.zone[local.api_zone].id : data.cloudflare_zone.zone[local.api_zone].id,
+    local.zone_ids[keys(var.site_configs)[0]]  # Fallback to first site's zone
+  )
+  name    = split(".", var.api_domain)[0]  # Extract subdomain (e.g., "demo-api")
+  type    = var.api_backend_ip != "" ? "A" : "CNAME"
+  content = var.api_backend_ip != "" ? var.api_backend_ip : "@"  # Use root domain if CNAME
+  proxied = true  # Proxy through Cloudflare for DDoS protection
+}
+
 # Create Cloudflare zones if they don't exist, or use existing ones
 # First, try to get unique DNS zones from site_configs
 locals {
@@ -67,6 +86,8 @@ resource "cloudflare_workers_script" "spaces_router" {
         base_url = var.spaces_base_url
       }
     })};
+    
+    const API_DOMAIN = ${var.api_domain != "" ? "\"${var.api_domain}\"" : "null"};
 
     addEventListener('fetch', event => {
       event.respondWith(handleRequest(event.request));
@@ -75,16 +96,45 @@ resource "cloudflare_workers_script" "spaces_router" {
     async function handleRequest(request) {
       const url = new URL(request.url);
       const host = url.hostname;
-      const cfg  = ROUTE_MAP[host];
-
+      const path = url.pathname;
+      
+      // Check if this is an API request
+      if (API_DOMAIN && path.startsWith('/api')) {
+        // Proxy API requests to demo-api.sb-demokit.com
+        const apiUrl = new URL(path + url.search, `https://${"$"}{API_DOMAIN}`);
+        
+        // Forward the request to the API domain
+        const apiRequest = new Request(apiUrl, {
+          method: request.method,
+          headers: request.headers,
+          body: request.body
+        });
+        
+        const apiResponse = await fetch(apiRequest);
+        
+        // Create new response with cache control headers to prevent caching
+        const apiHeaders = new Headers(apiResponse.headers);
+        apiHeaders.set('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0');
+        apiHeaders.set('Pragma', 'no-cache');
+        apiHeaders.set('Expires', '0');
+        
+        return new Response(apiResponse.body, {
+          status: apiResponse.status,
+          statusText: apiResponse.statusText,
+          headers: apiHeaders
+        });
+      }
+      
+      // Handle static site requests
+      const cfg = ROUTE_MAP[host];
       if (!cfg) {
         return new Response("Unknown site: " + host, { status: 404 });
       }
 
       // Rewrite path: /something → /spaces_path/something
       // e.g., /index.html → /dev-mobile-sb-demokit-com/index.html
-      const path = url.pathname === "/" ? "/index.html" : url.pathname;
-      const target = `${"$"}{cfg.base_url}/${"$"}{cfg.spaces_path}${"$"}{path}`;
+      const filePath = path === "/" ? "/index.html" : path;
+      const target = `${"$"}{cfg.base_url}/${"$"}{cfg.spaces_path}${"$"}{filePath}`;
 
       // Fetch from Spaces
       const response = await fetch(target, {
@@ -96,7 +146,7 @@ resource "cloudflare_workers_script" "spaces_router" {
       });
 
       // Create a new response with correct content-type
-      const contentType = getContentType(path);
+      const contentType = getContentType(filePath);
       const newHeaders = new Headers(response.headers);
       newHeaders.set('Content-Type', contentType);
       
@@ -206,20 +256,8 @@ resource "cloudflare_ruleset" "cache_settings" {
   kind    = "zone"
   phase   = "http_request_cache_settings"
 
-  # Create rules for each domain in this zone
-  dynamic "rules" {
-    for_each = local.sites_by_zone[each.key]
-    content {
-      description = "Do not cache API - ${rules.value.domain_name}"
-      action      = "set_cache_settings"
-      expression  = "(http.host eq \"${rules.value.domain_name}\" and starts_with(http.request.uri.path, \"/api\"))"
-      enabled     = true
-
-      action_parameters {
-        cache = false
-      }
-    }
-  }
+  # Note: API cache bypass rules removed - API requests are now handled by Worker
+  # and routed to demo-api.sb-demokit.com, so they don't need cache rules here
 
   dynamic "rules" {
     for_each = local.sites_by_zone[each.key]
