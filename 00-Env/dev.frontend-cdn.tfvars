@@ -22,27 +22,48 @@ enable_rulesets = true  # Set to false if getting 403 errors on rulesets (cache 
 spaces_base_url = "https://dev-sb.syd1.digitaloceanspaces.com"
 domain_prefix = "dev-"
 
+# API configuration
+api_domain = "demo-api.sb-demokit.com"
+# api_backend_ip = "1.2.3.4"  # Uncomment and set if API is not behind Cloudflare
+
 site_configs = {
+
+  bot_sb_demokit_com = {
+    domain_name   = "dev-bot.sb-demokit.com"
+    dns_zone      = "sb-demokit.com"  # Fixed: should match the domain's root zone
+    # path_prefix   = "dev-bot"
+    local_build_dir = "../builds/dev-bot"
+  }
+
+
+  assets_sb_demokit_com = {
+    domain_name   = "dev-assets.sb-demokit.com"
+    dns_zone      = "sb-demokit.com"  # Fixed: should match the domain's root zone
+    # path_prefix   = "dev-assets"
+    local_build_dir = "../builds/dev-assets"
+  }
+
   # SITE 1: Mobile site
   mobile_sb_demokit_com = {
     domain_name   = "dev-mobile.sb-demokit.com"
     dns_zone      = "sb-demokit.com"
-    path_prefix   = "dev-mobile"
+    # path_prefix   = "dev-mobile"
     local_build_dir = "../builds/dev-mobile"
   },
   
   desktop_sb_demokit_com = {
     domain_name   = "dev-desktop.sb-demokit.com"
     dns_zone      = "sb-demokit.com"
-    path_prefix   = "dev-desktop"
+    # path_prefix   = "dev-desktop"
     local_build_dir = "../builds/dev-desktop"
   },
 
   admin_sb_demokit_com = {
     domain_name   = "dev-admin.sb-demokit.com"
     dns_zone      = "sb-demokit.com"  # Fixed: should match the domain's root zone
-    path_prefix   = "dev-admin"
+    # path_prefix   = "dev-admin"
     local_build_dir = "../builds/dev-admin"
   }
+
 }
 

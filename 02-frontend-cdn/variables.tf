@@ -19,7 +19,7 @@ variable "site_configs" {
     domain_name = string
     # The root domain to use for DNS management (e.g., mysite.com)
     dns_zone    = string
-    path_prefix = string
+    # path_prefix = string
     local_build_dir = string
     # The unique name for the Spaces bucket (must be globally unique)
     # bucket_name = string 

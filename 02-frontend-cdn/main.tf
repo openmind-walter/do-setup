@@ -103,25 +103,56 @@ resource "cloudflare_workers_script" "spaces_router" {
         // Proxy API requests to demo-api.sb-demokit.com
         const apiUrl = new URL(path + url.search, `https://${"$"}{API_DOMAIN}`);
         
+        // Forward Cloudflare geolocation headers to backend
+        // Cloudflare automatically adds these headers:
+        // - CF-IPCountry: ISO 3166-1 alpha-2 country code (e.g., "US", "GB", "SG")
+        // - CF-IPCity: City name
+        // - CF-IPContinent: Continent code (e.g., "NA", "EU", "AS")
+        // - CF-IPLatitude: Latitude
+        // - CF-IPLongitude: Longitude
+        const apiHeaders = new Headers();
+        
+        // Copy original headers
+        request.headers.forEach((value, key) => {
+          apiHeaders.set(key, value);
+        });
+        
+        // Forward Cloudflare geolocation headers (if present)
+        const country = request.headers.get('CF-IPCountry');
+        const city = request.headers.get('CF-IPCity');
+        const continent = request.headers.get('CF-IPContinent');
+        const latitude = request.headers.get('CF-IPLatitude');
+        const longitude = request.headers.get('CF-IPLongitude');
+        
+        if (country) apiHeaders.set('CF-IPCountry', country);
+        if (city) apiHeaders.set('CF-IPCity', city);
+        if (continent) apiHeaders.set('CF-IPContinent', continent);
+        if (latitude) apiHeaders.set('CF-IPLatitude', latitude);
+        if (longitude) apiHeaders.set('CF-IPLongitude', longitude);
+        
+        // Also forward the original IP address
+        const clientIP = request.headers.get('CF-Connecting-IP') || request.headers.get('X-Forwarded-For');
+        if (clientIP) apiHeaders.set('X-Client-IP', clientIP);
+        
         // Forward the request to the API domain
         const apiRequest = new Request(apiUrl, {
           method: request.method,
-          headers: request.headers,
+          headers: apiHeaders,
           body: request.body
         });
         
         const apiResponse = await fetch(apiRequest);
         
         // Create new response with cache control headers to prevent caching
-        const apiHeaders = new Headers(apiResponse.headers);
-        apiHeaders.set('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0');
-        apiHeaders.set('Pragma', 'no-cache');
-        apiHeaders.set('Expires', '0');
+        const responseHeaders = new Headers(apiResponse.headers);
+        responseHeaders.set('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0');
+        responseHeaders.set('Pragma', 'no-cache');
+        responseHeaders.set('Expires', '0');
         
         return new Response(apiResponse.body, {
           status: apiResponse.status,
           statusText: apiResponse.statusText,
-          headers: apiHeaders
+          headers: responseHeaders
         });
       }
       
